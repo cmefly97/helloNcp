@@ -43,10 +43,10 @@ node {
     stage('Deploy') {        
         
         // "빌드 결과물을 objectstorage에 백업한다."
-   		sh "python /usr/objectstorage/backup_war.py"
+   		sh "python /home/objectstorage/script/backup_war.py"
         
         //"빌드 결과물을 ObjectStorage에 Upload한다"
-    	sh "python /usr/objectstorage/upload_war.py"
+    	sh "python /home/objectstorage/script/upload_war.py"
     	        
         //"stop springboot ~"
         sh "ssh  -o StrictHostKeyChecking=no root@49.236.137.211 -p3333  sh /var/www/script/runNcp.sh stop"
