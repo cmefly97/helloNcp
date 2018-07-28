@@ -12,7 +12,8 @@ node {
 
     def mvnHome
 
-    stage('Preparation') { // for display purposes
+    stage('Preparation') { 
+        // for display purposes
         echo "Current workspace : ${workspace}"
         // Get the Maven tool.
         // ** NOTE: This 'M3' Maven tool must be configured
@@ -21,56 +22,39 @@ node {
         env.JAVA_HOME = tool 'jdk8'
     }
     stage('Checkout') {
-        // Get some code from a Git repository
-        println "Get code from a SourceCommit repository"
+        // SourceCommit  리파지토리에서 소스 가져오기
         checkout scm
     }
-    if (skipTests == true) {
+    stage('Test') {
         
-        println "skipTests : " + skipTests
-        
-        stage('Test') {
-            sh "'${mvnHome}/bin/mvn'  -Dmaven.test.failure.ignore -B verify"
-            //sh "'${mvnHome}/bin/mvn' -P ${activeProfile} -Dmaven.test.failure.ignore -B verify"
-        }
-        stage('Store Test Results') {
-            junit '**/target/surefire-reports/TEST-*.xml'jenkinpipeline
-        }
+        println "skip Test"        
+        //sh "'${mvnHome}/bin/mvn'  -Dmaven.test.failure.ignore -B verify"
+            
     }
     stage('Build') {
     
-    	println "Build Start ::::::::::::: "
-    	
-        
+    	// maven 빌드    	
         sh "'${mvnHome}/bin/mvn'  -Dmaven.test.skip=true  clean install package"
-        //sh "'${mvnHome}/bin/mvn' -P ${activeProfile} -Dmaven.test.skip=true clean install"
     }
     stage('Archive') {
         archive '**/target/*.war'
     }
-    stage('Deploy') {
-        echo "Deploy start Now !!"
+    
+    stage('Deploy') {        
         
+        // "빌드 결과물을 objectstorage에 백업한다."
+   		sh "python /usr/objectstorage/backup_war.py"
         
-        // SSH Agent Plugin
-        
-        echo "agent start ~ "
-        sh "pwd"
-        
-        echo "Upload ObjectStorage"
-    	sh "python /usr/objectstorage/objUpload.py"
-    	
-    	echo "Deploy start Now !!"
-   		sh "python /usr/objectstorage/objDown.py"
-        
-        echo "stop springboot ~"
+        //"빌드 결과물을 ObjectStorage에 Upload한다"
+    	sh "python /usr/objectstorage/upload_war.py"
+    	        
+        //"stop springboot ~"
         sh "ssh  -o StrictHostKeyChecking=no root@49.236.137.211 -p3333  sh /var/www/script/runNcp.sh stop"
         
-        echo "copy artipact  to remote server  over ssh !!"
+        //"copy artipact  to remote server  over ssh !!"
         sh "scp -P 3333 -p -r  ./target/*.war root@49.236.137.211:/var/www/html"
         
-        echo "start springboot ~"
+        //"start springboot ~"
         sh "ssh  -o StrictHostKeyChecking=no root@49.236.137.211 -p3333  sh /var/www/script/runNcp.sh start"
-    }
-   
+    }   
 }
