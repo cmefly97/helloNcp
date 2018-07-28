@@ -52,7 +52,7 @@ node {
         sh "ssh  -o StrictHostKeyChecking=no root@49.236.137.211 -p3333  sh /var/www/script/runNcp.sh stop"
         
         //"copy artipact  to remote server  over ssh !!"
-        sh "scp -P 3333 -p -r  ./target/*.war root@49.236.137.211:/var/www/html"
+        sh "scp -P 3333 -p -r  ./target/*.war root@49.236.137.211:/var/www"
         
         //"start springboot ~"
         sh "ssh  -o StrictHostKeyChecking=no root@49.236.137.211 -p3333  sh /var/www/script/runNcp.sh start"
